@@ -1,9 +1,48 @@
 # Tonight
 
-A two-person recommendation app: "what should we watch tonight?" and "where
-should we eat?", tailored to both people's tastes at once. Built as a
-portfolio piece to show both product polish and AI systems depth — the
-recommendation *logic* is a typed judgment pipeline, not a prompt.
+**A two-person recommendation engine that answers "what should we watch?"
+and "where should we eat?" — built to show AI systems depth, not just an
+LLM wrapper around a prompt.**
+
+The core idea: ranking, filtering, and tie-breaking are treated as **typed
+judgments** with calibrated probabilities behind them, not free text parsed
+and hoped-for. A small purpose-built model ([TypeSafe](https://typesafe.ai)'s
+Jev) does the decisions; an open-weight model (Groq) does the writing;
+plain code does the policy. Nothing about *why* one option beat another is
+buried in a paragraph of generated prose.
+
+![Tonight's pick with full score transparency](docs/screenshots/tonight_result.png)
+
+## Highlights
+
+- **Typed judgment pipeline, not a prompt.** Every ranking decision traces
+  to a `Score`/`Noul`/`Choice` answer with a probability distribution and a
+  confidence value — inspectable, testable, versioned in code
+  (`app/judgments/typesafe_client.py`), not a string buried in a request handler.
+- **Two models, two jobs, on purpose.** A cheap, purpose-trained judgment
+  model ranks and filters; a separate open-weight generation model
+  (`openai/gpt-oss-20b` via Groq's free tier) only ever writes the "why this"
+  blurb. Judgment and generation never share a model call — that separation
+  is a deliberate architectural bet, documented below.
+- **Composite policy lives in code, not a model.** "We both have to like
+  it" (`min` across two people's scores) vs. "weigh both tastes" (mean) is
+  a plain-code decision. Changing the policy is a diff, not a re-run of
+  inference.
+- **Score transparency by default.** Most recommendation demos hide the
+  scoring behind a single "recommended for you" card. This one shows the
+  full ranked list and every person's per-item score, unfiltered.
+- **A real eval, run against the live pipeline.** `scripts/eval.py` scores
+  16 hand-labeled scenarios in one batched API call and reports accuracy
+  plus precision/recall — a regression check, not a one-off demo screenshot.
+- **Two live third-party integrations wired end-to-end**: TMDB (movies/TV)
+  and Google Places (restaurants) feed a real candidate pool — nothing here
+  runs against mocked data.
+
+## What it looks like
+
+| Tonight's pick | Restaurant mode | Preferences |
+|---|---|---|
+| ![Movie recommendation](docs/screenshots/tonight_result.png) | ![Restaurant recommendation](docs/screenshots/tonight_restaurant.png) | ![Preference capture](docs/screenshots/preferences.png) |
 
 ## Architecture
 
@@ -86,6 +125,12 @@ word with no error. Fixed by setting `reasoning_effort: "low"` and giving
 enough token headroom (400) for both the hidden reasoning and the visible
 answer. Worth knowing if you're budgeting tokens tightly against any
 `gpt-oss` model on Groq.
+
+## Tech stack
+
+**Backend:** Python, FastAPI, SQLModel, SQLite · **Frontend:** React, TypeScript, Vite
+**AI:** [TypeSafe](https://typesafe.ai) (Jev — typed judgments), Groq (`openai/gpt-oss-20b` — generation)
+**Data:** TMDB API (movies/TV), Google Places API (restaurants)
 
 ## Running locally
 
