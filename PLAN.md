@@ -1,5 +1,24 @@
 # "Tonight" — a two-person recommendation app (portfolio project)
 
+## Status (as of 2026-09-19)
+
+Steps 1–8 are done, verified live, and pushed to a public repo:
+[github.com/srameshv/tonight-recs-app](https://github.com/srameshv/tonight-recs-app).
+Only Step 9 (deploy to a live URL) remains.
+
+- ✅ Backend (FastAPI/SQLModel/SQLite) and frontend (Vite/React/TS) scaffolded, both boot cleanly
+- ✅ TMDB + Google Places ingestion live (Yelp was dropped — no longer free; switched to Google Places' free tier)
+- ✅ Preference capture (ratings + freeform notes) end-to-end, backend + UI
+- ✅ TypeSafe Score/Noul/Choice question specs, tested live in isolation
+- ✅ Groq (`openai/gpt-oss-20b`) generation client for blurbs + note parsing
+- ✅ `POST /recommendations` orchestration endpoint, verified across both ranking modes and the tie-break path
+- ✅ Recommendation UI with full score transparency, smoke-tested in a real browser
+- ✅ Eval harness (16 scenarios, 100% accuracy, Noul precision/recall 1.00/1.00) + recruiter-facing README with screenshots
+- ✅ Security-reviewed (no secrets in any commit, full history checked) and made public
+- ⏳ **Not started:** Step 9, deploy to a live URL (Fly.io/Render + Vercel) — app currently only runs locally
+
+See `README.md` for the architecture writeup, eval results, and a couple of real gotchas hit along the way (Yelp pricing, a deprecated Groq model, `gpt-oss` reasoning-token truncation).
+
 ## Context
 
 You and your husband want a shared tool that recommends what to watch (movies/TV) and where to eat, tailored to both of your tastes at once. Beyond solving that real problem, this is meant to be a **portfolio piece that shows both product polish and AI systems depth** to an audience like a frontier-lab engineer or recruiter.
@@ -65,15 +84,15 @@ Composite scoring (combining both people's Score results into one ranked list) h
 
 ## Build order
 
-1. Scaffold FastAPI + React project structure
-2. TMDB + Google Places ingestion, seed a real candidate pool
-3. Preference capture (ratings + freeform notes) — backend + minimal UI
-4. TypeSafe integration: define and test the Score/Noul/Choice question specs in isolation before wiring into the endpoint
-5. Groq integration: explanation blurb, freeform-note parsing
-6. Recommendation orchestration endpoint (composite scoring policy in code)
-7. Frontend recommendation UI with score transparency
-8. Eval harness + README section on architecture and tradeoffs (why TypeSafe for judgments, why Groq for generation, what the eval showed)
-9. Deploy (e.g. Fly.io/Render backend + Vercel frontend) so the portfolio link actually works live
+1. ✅ Scaffold FastAPI + React project structure
+2. ✅ TMDB + Google Places ingestion, seed a real candidate pool
+3. ✅ Preference capture (ratings + freeform notes) — backend + minimal UI
+4. ✅ TypeSafe integration: define and test the Score/Noul/Choice question specs in isolation before wiring into the endpoint
+5. ✅ Groq integration: explanation blurb, freeform-note parsing
+6. ✅ Recommendation orchestration endpoint (composite scoring policy in code)
+7. ✅ Frontend recommendation UI with score transparency
+8. ✅ Eval harness + README section on architecture and tradeoffs (why TypeSafe for judgments, why Groq for generation, what the eval showed)
+9. ⏳ Deploy (e.g. Fly.io/Render backend + Vercel frontend) so the portfolio link actually works live
 
 ## Verification
 
@@ -84,6 +103,6 @@ Composite scoring (combining both people's Score results into one ranked list) h
 
 ## Open items to confirm before implementation starts
 
-- TMDB and Google Places API keys — need to be obtained and stored server-side (never in frontend code).
-- TypeSafe account/API key access (their site mentions "early access" — may need to request access before building against it).
-- Groq API key for the open-source model calls.
+- ✅ TMDB and Google Places API keys — obtained, stored server-side in `backend/.env` (gitignored, never in frontend code).
+- ✅ TypeSafe account/API key access — already had an account, generated a key from console.typesafe.ai/keys.
+- ✅ Groq API key for the open-source model calls — obtained.
