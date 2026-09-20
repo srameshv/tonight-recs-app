@@ -14,8 +14,8 @@ This is a greenfield build (no existing codebase for this project), so no explor
 ## Architecture
 
 ```
-TMDB API  ──┐
-Yelp/Places ─┼─► FastAPI backend ─► Postgres/SQLite (items, ratings, notes, log)
+TMDB API      ──┐
+Google Places ──┼─► FastAPI backend ─► Postgres/SQLite (items, ratings, notes, log)
              │         │
              │         ├─► TypeSafe (Jev): Score / Noul / Choice  ← the showcase
              │         │      - Score: per-user taste fit per candidate
@@ -35,14 +35,14 @@ Composite scoring (combining both people's Score results into one ranked list) h
 ## Data model
 
 - `users` — 2 seeded rows (you, husband)
-- `items` — `id, type [movie|tv|restaurant], external_id, title, metadata (JSON: genres/cuisine/etc from TMDB/Yelp)`
+- `items` — `id, type [movie|tv|restaurant], external_id, title, metadata (JSON: genres/cuisine/etc from TMDB/Google Places)`
 - `ratings` — `user_id, item_id, value, created_at` (explicit like/dislike or 1–5)
 - `preference_notes` — `user_id, text, updated_at` (freeform, e.g. "I love slow-burn thrillers, hate jump scares")
 - `recommendation_log` — `created_at, context (JSON: day/mood/occasion), results (JSON: scores + chosen item)` — doubles as your eval history
 
 ## Backend (FastAPI)
 
-- `app/ingestion/` — TMDB client (movies/TV) and Yelp/Google Places client (restaurants); a `sync` job/script that pulls a candidate pool into `items`.
+- `app/ingestion/` — TMDB client (movies/TV) and Google Places client (restaurants); a `sync` job/script that pulls a candidate pool into `items`.
 - `app/preferences/` — CRUD endpoints for ratings and freeform notes per user.
 - `app/judgments/typesafe_client.py` — thin wrapper around the TypeSafe SDK; defines the actual Score/Noul/Choice question specs (instructions + criteria) as versioned, testable objects — not inline strings scattered through request handlers.
 - `app/judgments/groq_client.py` — wrapper for the Groq-hosted open model; used only for explanation text and freeform-note parsing.
@@ -66,7 +66,7 @@ Composite scoring (combining both people's Score results into one ranked list) h
 ## Build order
 
 1. Scaffold FastAPI + React project structure
-2. TMDB + Yelp ingestion, seed a real candidate pool
+2. TMDB + Google Places ingestion, seed a real candidate pool
 3. Preference capture (ratings + freeform notes) — backend + minimal UI
 4. TypeSafe integration: define and test the Score/Noul/Choice question specs in isolation before wiring into the endpoint
 5. Groq integration: explanation blurb, freeform-note parsing
@@ -78,12 +78,12 @@ Composite scoring (combining both people's Score results into one ranked list) h
 ## Verification
 
 - Unit-level: test each TypeSafe question spec against a few fixed state inputs, confirm typed output shape and sane probabilities.
-- Integration: run `/recommendations` end-to-end against seeded TMDB/Yelp data for both profiles, confirm composite ranking behaves as expected (e.g. an item one person dislikes doesn't win on "both must like" mode).
+- Integration: run `/recommendations` end-to-end against seeded TMDB/Google Places data for both profiles, confirm composite ranking behaves as expected (e.g. an item one person dislikes doesn't win on "both must like" mode).
 - Eval: run `scripts/eval.py` against the labeled scenario set; report accuracy/precision in the README.
 - Manual: use the deployed app for a real "what should we watch tonight" decision with your husband before calling it done.
 
 ## Open items to confirm before implementation starts
 
-- TMDB and Yelp/Google Places API keys — need to be obtained and stored server-side (never in frontend code).
+- TMDB and Google Places API keys — need to be obtained and stored server-side (never in frontend code).
 - TypeSafe account/API key access (their site mentions "early access" — may need to request access before building against it).
 - Groq API key for the open-source model calls.

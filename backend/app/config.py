@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./tonight.db"
 
     tmdb_api_key: str = ""
-    yelp_api_key: str = ""
+    google_places_api_key: str = ""
 
     typesafe_api_key: str = ""
     groq_api_key: str = ""
