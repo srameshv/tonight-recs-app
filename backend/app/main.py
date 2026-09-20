@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import init_db
 from app.preferences.router import router as preferences_router
+from app.recommend.router import router as recommend_router
 
 app = FastAPI(title="Tonight")
 
@@ -20,6 +21,7 @@ def on_startup() -> None:
 
 
 app.include_router(preferences_router)
+app.include_router(recommend_router)
 
 
 @app.get("/health")

@@ -6,11 +6,12 @@ from sqlmodel import Session, select
 
 from app.db import engine
 from app.judgments.typesafe_client import (
-    build_taste_state,
+    candidate_state,
     hard_filter_question,
     run_judgments,
     taste_fit_question,
     tie_break_question,
+    user_state,
 )
 from app.models import Item, ItemType, PreferenceNote, Rating, User
 
@@ -33,11 +34,17 @@ def load_user_context(session: Session, user_id: int) -> tuple[str, list[str], l
 
 def test_score_and_filter(session: Session, user: User, candidate: Item) -> None:
     taste_note, liked, disliked = load_user_context(session, user.id)
-    state = build_taste_state(taste_note, liked, disliked, candidate.model_dump())
+    state = {
+        "user": user_state(taste_note, liked, disliked),
+        "candidate": candidate_state(candidate.model_dump()),
+    }
 
     response = run_judgments(
         state,
-        {"fit": taste_fit_question(), "conflict": hard_filter_question()},
+        {
+            "fit": taste_fit_question("user", "candidate"),
+            "conflict": hard_filter_question("user", "candidate"),
+        },
     )
     print(f"\n[score/noul] candidate={candidate.title!r} user={user.name!r}")
     print(f"  model={response.model} usage={response.usage}")

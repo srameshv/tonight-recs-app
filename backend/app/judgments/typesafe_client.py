@@ -24,25 +24,26 @@ def get_client() -> TypeSafeClient:
     return TypeSafeClient(api_key=settings.typesafe_api_key)
 
 
-def taste_fit_question() -> Score:
-    """Per-user taste fit for one candidate, given `candidate` in state."""
+def taste_fit_question(user_path: str, candidate_path: str) -> Score:
+    """Per-user taste fit for one candidate, addressed by state path so many
+    (user, candidate) pairs can be asked in a single batched call."""
     return Score(
         instructions=(
-            "Given this person's `taste_note` and their `liked_titles`/"
-            "`disliked_titles` history, how excited would they be to watch or "
-            "visit `candidate`?"
+            f"Given `{user_path}.taste_note` and `{user_path}.liked_titles`/"
+            f"`{user_path}.disliked_titles`, how excited would this person be "
+            f"to watch or visit `{candidate_path}`?"
         ),
         criteria=TASTE_SCORE_LEVELS,
     )
 
 
-def hard_filter_question() -> Noul:
-    """Whether `candidate` conflicts with something the person explicitly ruled out."""
+def hard_filter_question(user_path: str, candidate_path: str) -> Noul:
+    """Whether the candidate conflicts with something the person explicitly ruled out."""
     return Noul(
         instructions=(
-            "Does `candidate` conflict with anything this person explicitly said "
-            "they dislike, are allergic to, or want to avoid, per their "
-            "`taste_note` or `disliked_titles`?"
+            f"Does `{candidate_path}` conflict with anything this person "
+            f"explicitly said they dislike, are allergic to, or want to avoid, "
+            f"per `{user_path}.taste_note` or `{user_path}.disliked_titles`?"
         ),
         criteria={
             "true": "conflicts with a stated dislike or restriction",
@@ -62,21 +63,23 @@ def tie_break_question(candidate_labels: list[str]) -> Choice:
     )
 
 
-def build_taste_state(
+def candidate_state(candidate: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "title": candidate["title"],
+        "type": candidate["type"],
+        "metadata": candidate.get("item_metadata", {}),
+    }
+
+
+def user_state(
     taste_note: str,
     liked_titles: list[str],
     disliked_titles: list[str],
-    candidate: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "taste_note": taste_note or "(no note provided)",
         "liked_titles": liked_titles,
         "disliked_titles": disliked_titles,
-        "candidate": {
-            "title": candidate["title"],
-            "type": candidate["type"],
-            "metadata": candidate.get("item_metadata", {}),
-        },
     }
 
 
