@@ -1,121 +1,131 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect, useMemo, useState } from 'react'
+import { api, type Item, type ItemType, type Rating, type User } from './api'
 import './App.css'
 
+const TYPES: { key: ItemType; label: string }[] = [
+  { key: 'movie', label: 'Movies' },
+  { key: 'tv', label: 'TV Shows' },
+  { key: 'restaurant', label: 'Restaurants' },
+]
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [users, setUsers] = useState<User[]>([])
+  const [activeUserId, setActiveUserId] = useState<number | null>(null)
+  const [activeType, setActiveType] = useState<ItemType>('movie')
+  const [items, setItems] = useState<Item[]>([])
+  const [ratings, setRatings] = useState<Rating[]>([])
+  const [note, setNote] = useState('')
+  const [noteSaved, setNoteSaved] = useState(true)
+
+  useEffect(() => {
+    api.listUsers().then((u) => {
+      setUsers(u)
+      setActiveUserId(u[0]?.id ?? null)
+    })
+  }, [])
+
+  useEffect(() => {
+    api.listItems(activeType).then(setItems)
+  }, [activeType])
+
+  useEffect(() => {
+    if (activeUserId == null) return
+    api.listRatings(activeUserId).then(setRatings)
+    api.getNote(activeUserId).then((n) => setNote(n?.text ?? ''))
+  }, [activeUserId])
+
+  const ratingByItemId = useMemo(() => {
+    const map = new Map<number, number>()
+    for (const r of ratings) map.set(r.item_id, r.value)
+    return map
+  }, [ratings])
+
+  async function rate(itemId: number, value: number) {
+    if (activeUserId == null) return
+    const current = ratingByItemId.get(itemId)
+    const next = current === value ? 0 : value
+    await api.upsertRating(activeUserId, itemId, next)
+    const updated = await api.listRatings(activeUserId)
+    setRatings(updated)
+  }
+
+  async function saveNote() {
+    if (activeUserId == null) return
+    await api.upsertNote(activeUserId, note)
+    setNoteSaved(true)
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+    <main className="app">
+      <h1>Tonight</h1>
+
+      <div className="profile-switch">
+        {users.map((u) => (
+          <button
+            key={u.id}
+            className={u.id === activeUserId ? 'active' : ''}
+            onClick={() => setActiveUserId(u.id)}
+          >
+            {u.name}
+          </button>
+        ))}
+      </div>
+
+      <section className="note-section">
+        <label htmlFor="note">Describe your taste (freeform)</label>
+        <textarea
+          id="note"
+          value={note}
+          onChange={(e) => {
+            setNote(e.target.value)
+            setNoteSaved(false)
+          }}
+          placeholder="I love slow-burn thrillers, hate jump scares..."
+        />
+        <button onClick={saveNote} disabled={noteSaved}>
+          {noteSaved ? 'Saved' : 'Save note'}
         </button>
       </section>
 
-      <div className="ticks"></div>
+      <div className="type-tabs">
+        {TYPES.map((t) => (
+          <button
+            key={t.key}
+            className={t.key === activeType ? 'active' : ''}
+            onClick={() => setActiveType(t.key)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
+      <ul className="item-list">
+        {items.map((item) => {
+          const value = ratingByItemId.get(item.id) ?? 0
+          return (
+            <li key={item.id} className="item-row">
+              <span className="item-title">{item.title}</span>
+              <span className="thumbs">
+                <button
+                  className={value === 1 ? 'active' : ''}
+                  onClick={() => rate(item.id, 1)}
+                  aria-label="thumbs up"
                 >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
+                  👍
+                </button>
+                <button
+                  className={value === -1 ? 'active' : ''}
+                  onClick={() => rate(item.id, -1)}
+                  aria-label="thumbs down"
                 >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
+                  👎
+                </button>
+              </span>
             </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          )
+        })}
+      </ul>
+    </main>
   )
 }
 

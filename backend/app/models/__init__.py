@@ -1,3 +1,3 @@
-from app.models.tables import Item, PreferenceNote, Rating, RecommendationLog, User
+from app.models.tables import Item, ItemType, PreferenceNote, Rating, RecommendationLog, User
 
-__all__ = ["User", "Item", "Rating", "PreferenceNote", "RecommendationLog"]
+__all__ = ["User", "Item", "ItemType", "Rating", "PreferenceNote", "RecommendationLog"]
