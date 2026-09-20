@@ -72,3 +72,74 @@
 .thumbs button.active {
   opacity: 1;
 }
+
+.mood-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.mood-row input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.mood-row button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mood-row button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.error {
+  color: #b00020;
+}
+
+.top-pick {
+  background: #f6f6f6;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.top-pick h2 {
+  margin: 0 0 0.4rem;
+}
+
+.blurb {
+  font-style: italic;
+  margin: 0 0 0.6rem;
+}
+
+.score-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.score-pill {
+  font-size: 0.85rem;
+  background: #eee;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+}
+
+.ranked-row {
+  align-items: flex-start;
+}
+
+.composite {
+  font-size: 0.85rem;
+  color: #555;
+  white-space: nowrap;
+}

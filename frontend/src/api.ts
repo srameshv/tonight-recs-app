@@ -25,6 +25,37 @@ export interface PreferenceNote {
   text: string
 }
 
+export type RankingMode = 'both_must_like' | 'weighted'
+
+export interface RecommendationRequest {
+  item_type: ItemType
+  mode: RankingMode
+  context?: Record<string, string>
+  candidate_pool_size?: number
+  top_n?: number
+  shortlist_n?: number
+}
+
+export interface RankedCandidate {
+  item_id: number
+  title: string
+  per_user_scores: Record<string, number>
+  composite_score: number
+}
+
+export interface TopPick {
+  item_id: number
+  title: string
+  per_user_scores: Record<string, number>
+  blurb: string
+}
+
+export interface RecommendationResponse {
+  ranked: RankedCandidate[]
+  top_pick: TopPick | null
+  log_id: number
+}
+
 const BASE = '/api'
 
 async function json<T>(response: Response): Promise<T> {
@@ -59,4 +90,11 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId, text }),
     }).then((r) => json<PreferenceNote>(r)),
+
+  getRecommendations: (request: RecommendationRequest) =>
+    fetch(`${BASE}/recommendations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    }).then((r) => json<RecommendationResponse>(r)),
 }
