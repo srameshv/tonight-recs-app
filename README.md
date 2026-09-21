@@ -1,5 +1,10 @@
 # Tonight
 
+![Python](https://img.shields.io/badge/python-3.11+-blue)
+![FastAPI](https://img.shields.io/badge/backend-FastAPI-009688)
+![React](https://img.shields.io/badge/frontend-React%2FTS-61DAFB)
+![Eval](https://img.shields.io/badge/eval-16%2F16%20passing-brightgreen)
+
 **A two-person recommendation engine that answers "what should we watch?"
 and "where should we eat?" — built to show AI systems depth, not just an
 LLM wrapper around a prompt.**
