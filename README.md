@@ -4,6 +4,7 @@
 ![FastAPI](https://img.shields.io/badge/backend-FastAPI-009688)
 ![React](https://img.shields.io/badge/frontend-React%2FTS-61DAFB)
 ![Eval](https://img.shields.io/badge/eval-16%2F16%20passing-brightgreen)
+![Jev](https://img.shields.io/badge/decisions-TypeSafe%20Jev-6f42c1)
 
 **A two-person recommendation engine that answers "what should we watch?"
 and "where should we eat?" — built to show AI systems depth, not just an
